@@ -1,13 +1,14 @@
 import numpy as np
 
+
 class Joint:
-    def __init__(self, parent, dh_parameters=(0, 0, 0, 0), number=0):
+    def __init__(self, parent):
         self.parent = parent
         self.child = None
         self.pos = None
         self.rot = None
-        self.number = number
-        self.alpha, self.a, self.d, self.theta = dh_parameters
+        self.alpha, self.a, self.d, self.theta = 0, 0, 0, 0
+        self.d_var, self.theta_var = False, False
         self.update()
         #pos = vector(self.pos[1], self.pos[2], self.pos[0])  # Zamiana układu prawoskrętnego z obliczeń,
         #rot = [vector(self.rot[1, 0], self.rot[2, 0], self.rot[0, 0]),  # do lewoskrętnego do wyświetlania
@@ -15,18 +16,64 @@ class Joint:
         #       vector(self.rot[1, 2], self.rot[2, 2], self.rot[0, 2])]
         #self.cords = CoordinatesSystem(pos, rot, self.number)
 
-    def new_joint(self, dh_parameters=(0, 0, 0, 0)):
+    def return_joint(self, i):
+        if self.number != i:
+            return self.child.return_joint(i)
+        return self
+
+    def append_joint(self):
         if self.child is not None:
-            self.child.new_joint(dh_parameters)
+            self.child.append_joint()
         else:
-            self.child = Joint(self, dh_parameters, self.number + 1)
-        return self.child
+            self.child = Joint(self)
+
+    def insert_joint(self, i):
+        if i != 0:
+            self.child.insert_joint(i-1)
+        else:
+            tmp = Joint(self)
+            if self.child is not None:
+                self.child.parent = tmp
+                tmp.child = self.child
+            self.child = tmp
+
+    def pop_joint(self):
+        if self.child is None:
+            return 0
+        elif self.child.child is not None:
+            return self.child.pop_joint()
+        else:
+            self.child.parent = None
+            self.child = None
+            return 1
+
+    def remove_joint(self, i):
+        if self.child is None:
+            if self.parent is None:
+                return 0
+            self.parent.child = None
+            self.parent = None
+            return 1
+        elif i != 0:
+            return self.child.remove_joint(i - 1)
+        else:
+            if self.child is not None:
+                self.child.parent = self.parent
+            self.parent.child = self.child
+            self.child = self.parent = None
+            return 1
 
     @property
     def len(self):
         if self.child is not None:
             return self.child.len
         return self.number
+
+    @property
+    def number(self):
+        if self.parent is not None:
+            return self.parent.number + 1
+        return 0
 
     def update(self):
         delta_pos = self.generate_matrix[:3, 3]

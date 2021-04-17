@@ -9,9 +9,15 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from CoordSys import Joint
 
 
 class Ui_MainWindow(object):
+    def __init__(self):
+        super().__init__()
+        self.Robot = Joint(None)
+
+    # noinspection PyUnresolvedReferences
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 600)
@@ -41,25 +47,17 @@ class Ui_MainWindow(object):
         self.menu_label = QtWidgets.QLabel(self.centralwidget)
         self.menu_label.setGeometry(QtCore.QRect(10, 530, 71, 16))
         self.menu_label.setObjectName("menu_label")
-        self.alpha_input = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.alpha_input = QtWidgets.QLineEdit(self.centralwidget)
         self.alpha_input.setGeometry(QtCore.QRect(200, 530, 41, 21))
-        self.alpha_input.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.alpha_input.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.alpha_input.setObjectName("alpha_input")
-        self.a_input = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.a_input = QtWidgets.QLineEdit(self.centralwidget)
         self.a_input.setGeometry(QtCore.QRect(250, 530, 41, 21))
-        self.a_input.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.a_input.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.a_input.setObjectName("a_input")
-        self.d_input = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.d_input = QtWidgets.QLineEdit(self.centralwidget)
         self.d_input.setGeometry(QtCore.QRect(300, 530, 41, 21))
-        self.d_input.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.d_input.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.d_input.setObjectName("d_input")
-        self.theta_input = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.theta_input = QtWidgets.QLineEdit(self.centralwidget)
         self.theta_input.setGeometry(QtCore.QRect(350, 530, 41, 21))
-        self.theta_input.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.theta_input.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.theta_input.setObjectName("theta_input")
         self.alpha_label = QtWidgets.QLabel(self.centralwidget)
         self.alpha_label.setGeometry(QtCore.QRect(215, 510, 16, 16))
@@ -74,12 +72,12 @@ class Ui_MainWindow(object):
         self.theta_label = QtWidgets.QLabel(self.centralwidget)
         self.theta_label.setGeometry(QtCore.QRect(365, 510, 16, 16))
         self.theta_label.setObjectName("theta_label")
-        self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox.setGeometry(QtCore.QRect(350, 560, 41, 17))
-        self.checkBox.setObjectName("checkBox")
-        self.checkBox_2 = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_2.setGeometry(QtCore.QRect(300, 560, 41, 17))
-        self.checkBox_2.setObjectName("checkBox_2")
+        self.d_var = QtWidgets.QCheckBox(self.centralwidget)
+        self.d_var.setGeometry(QtCore.QRect(300, 560, 41, 17))
+        self.d_var.setObjectName("d_var")
+        self.theta_var = QtWidgets.QCheckBox(self.centralwidget)
+        self.theta_var.setGeometry(QtCore.QRect(350, 560, 41, 17))
+        self.theta_var.setObjectName("theta_var")
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -90,6 +88,20 @@ class Ui_MainWindow(object):
         self.d_label.setBuddy(self.d_input)
         self.theta_label.setBuddy(self.theta_input)
 
+        self.joint_menu.addItem("0")
+
+        self.append_button.clicked.connect(self.append_joint)
+        self.insert_button.clicked.connect(self.insert_joint)
+        self.pop_button.clicked.connect(self.pop_joint)
+        self.remove_button.clicked.connect(self.remove_joint)
+        self.joint_menu.currentIndexChanged.connect(self.switch_joint)
+        self.alpha_input.editingFinished.connect(self.change_alpha)
+        self.a_input.editingFinished.connect(self.change_a)
+        self.d_input.editingFinished.connect(self.change_d)
+        self.theta_input.editingFinished.connect(self.change_theta)
+        self.d_var.clicked.connect(self.change_d_var)
+        self.theta_var.clicked.connect(self.change_theta_var)
+
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.append_button, self.insert_button)
@@ -99,9 +111,9 @@ class Ui_MainWindow(object):
         MainWindow.setTabOrder(self.joint_menu, self.alpha_input)
         MainWindow.setTabOrder(self.alpha_input, self.a_input)
         MainWindow.setTabOrder(self.a_input, self.d_input)
-        MainWindow.setTabOrder(self.d_input, self.checkBox_2)
-        MainWindow.setTabOrder(self.checkBox_2, self.theta_input)
-        MainWindow.setTabOrder(self.theta_input, self.checkBox)
+        MainWindow.setTabOrder(self.d_input, self.d_var)
+        MainWindow.setTabOrder(self.d_var, self.theta_input)
+        MainWindow.setTabOrder(self.theta_input, self.theta_var)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -115,5 +127,50 @@ class Ui_MainWindow(object):
         self.a_label.setText(_translate("MainWindow", "a"))
         self.d_label.setText(_translate("MainWindow", "d"))
         self.theta_label.setText(_translate("MainWindow", "<html><head/><body><p>&theta;</p></body></html>"))
-        self.checkBox.setText(_translate("MainWindow", "var"))
-        self.checkBox_2.setText(_translate("MainWindow", "var"))
+        self.theta_var.setText(_translate("MainWindow", "var"))
+        self.d_var.setText(_translate("MainWindow", "var"))
+
+    def append_joint(self):
+        self.Robot.append_joint()
+        self.joint_menu.addItem(str(self.Robot.len))
+
+    def insert_joint(self):
+        self.Robot.insert_joint(self.joint_menu.currentIndex())
+        self.joint_menu.addItem(str(self.Robot.len))
+        self.joint_menu.setCurrentIndex(self.joint_menu.currentIndex() + 1)
+
+    def pop_joint(self):
+        if self.Robot.pop_joint():
+            self.joint_menu.removeItem(self.joint_menu.count()-1)
+
+    def remove_joint(self):
+        if self.Robot.remove_joint(self.joint_menu.currentIndex()):
+            self.joint_menu.removeItem(self.joint_menu.count()-1)
+            self.joint_menu.setCurrentIndex(self.joint_menu.currentIndex()-1)
+
+    def switch_joint(self):
+        i = self.joint_menu.currentIndex()
+        self.alpha_input.setText(str(self.Robot.return_joint(i).alpha))
+        self.a_input.setText(str(self.Robot.return_joint(i).a))
+        self.d_input.setText(str(self.Robot.return_joint(i).d))
+        self.theta_input.setText(str(self.Robot.return_joint(i).theta))
+        self.d_var.setChecked(self.Robot.return_joint(i).d_var)
+        self.theta_var.setChecked(self.Robot.return_joint(i).theta_var)
+
+    def change_alpha(self):
+        self.Robot.return_joint(self.joint_menu.currentIndex()).alpha = int(self.alpha_input.text())
+
+    def change_a(self):
+        self.Robot.return_joint(self.joint_menu.currentIndex()).a = int(self.a_input.text())
+
+    def change_d(self):
+        self.Robot.return_joint(self.joint_menu.currentIndex()).d = int(self.d_input.text())
+
+    def change_theta(self):
+        self.Robot.return_joint(self.joint_menu.currentIndex()).theta = int(self.theta_input.text())
+
+    def change_d_var(self):
+        self.Robot.return_joint(self.joint_menu.currentIndex()).d_var = self.d_var.isChecked()
+
+    def change_theta_var(self):
+        self.Robot.return_joint(self.joint_menu.currentIndex()).theta_var = self.theta_var.isChecked()
