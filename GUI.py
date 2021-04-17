@@ -102,6 +102,11 @@ class Ui_MainWindow(object):
         self.d_var.clicked.connect(self.change_d_var)
         self.theta_var.clicked.connect(self.change_theta_var)
 
+        self.alpha_input.setText("0")
+        self.a_input.setText("0")
+        self.d_input.setText("0")
+        self.theta_input.setText("0")
+
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.append_button, self.insert_button)
