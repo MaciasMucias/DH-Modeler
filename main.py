@@ -1,9 +1,15 @@
 from CoordSys import Joint
-import vpython as vp
+from GUI import QtWidgets, Ui_MainWindow
 
-if __name__ == '__main__':
-    dh_table = [[0, 0, 5, 0],
-                [0, 5, 0, 90]]
-    joints = [Joint(None, [0, 0, 0, 0])]
-    for dh in dh_table:
-        joints.append(joints[-1].new_joint(dh))
+
+if __name__ == "__main__":
+    import sys
+
+    Robot = Joint(None)
+
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())
