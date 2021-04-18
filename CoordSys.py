@@ -1,95 +1,84 @@
 import numpy as np
 
 
-class Joint:
-    def __init__(self, parent):
-        self.parent = parent
-        self.child = None
-        self.pos = None
-        self.rot = None
-        self.alpha, self.a, self.d, self.theta = 0, 0, 0, 0
-        self.d_var, self.theta_var = False, False
-        self.update()
-        #pos = vector(self.pos[1], self.pos[2], self.pos[0])  # Zamiana układu prawoskrętnego z obliczeń,
-        #rot = [vector(self.rot[1, 0], self.rot[2, 0], self.rot[0, 0]),  # do lewoskrętnego do wyświetlania
-        #       vector(self.rot[1, 1], self.rot[2, 1], self.rot[0, 1]),
-        #       vector(self.rot[1, 2], self.rot[2, 2], self.rot[0, 2])]
-        #self.cords = CoordinatesSystem(pos, rot, self.number)
+class Robot:
+    def __init__(self):
+        self.joints = [None, Joint(None), Joint(None)]
 
     def return_joint(self, i):
-        if self.number != i:
-            return self.child.return_joint(i)
-        return self
+        return self.joints[i + 1]
 
     def append_joint(self):
-        if self.child is not None:
-            self.child.append_joint()
-        else:
-            self.child = Joint(self)
+        if self.len > 10:
+            return 0
+        self.joints.append(Joint(self.joints[-1]))
+        return 1
 
     def insert_joint(self, i):
-        if i != 0:
-            self.child.insert_joint(i-1)
-        else:
-            tmp = Joint(self)
-            if self.child is not None:
-                self.child.parent = tmp
-                tmp.child = self.child
-            self.child = tmp
+        if self.len > 10:
+            return 0
+        self.joints.insert(i+1, Joint(self.joints[i]))
+        return 1
 
     def pop_joint(self):
-        if self.child is None:
+        if self.len == 2:
             return 0
-        elif self.child.child is not None:
-            return self.child.pop_joint()
-        else:
-            self.child.parent = None
-            self.child = None
-            return 1
+        self.joints.pop(-1)
+        return 1
 
     def remove_joint(self, i):
-        if self.child is None:
-            if self.parent is None:
-                return 0
-            self.parent.child = None
-            self.parent = None
-            return 1
-        elif i != 0:
-            return self.child.remove_joint(i - 1)
-        else:
-            if self.child is not None:
-                self.child.parent = self.parent
-            self.parent.child = self.child
-            self.child = self.parent = None
-            return 1
+        if self.len == 2:
+            return 0
+        self.joints.pop(i+1)
+        return 1
 
     @property
     def len(self):
-        if self.child is not None:
-            return self.child.len
-        return self.number
+        return len(self.joints) - 1
 
-    @property
-    def number(self):
-        if self.parent is not None:
-            return self.parent.number + 1
-        return 0
+    def update_joint(self, joint):
+        joint.update(self.joints.index(joint)-1)
 
-    def update(self):
+    def draw(self, gl):
+        for joint in reversed(self.joints):
+            joint.draw_self(gl)
+
+
+class Joint:
+    pos: np.ndarray
+    rot: np.ndarray
+    gl_pos: np.ndarray
+    gl_rot: np.ndarray
+    size = 0.5
+
+    def __init__(self, parent):
+        self.alpha, self.a, self.d, self.theta = 0.0, 0.0, 0.0, 0.0
+        self.d_var, self.theta_var = False, False
+
+        self.pos = np.zeros(shape=(3, 1), dtype=np.float32)
+        self.rot = np.zeros(shape=(3, 3), dtype=np.float32)
+        self.gl_pos = np.zeros(shape=(3, 1), dtype=np.float32)
+        self.gl_rot = np.zeros(shape=(3, 3), dtype=np.float32)
+
+        self.update(parent)
+
+    def update(self, parent):
         delta_pos = self.generate_matrix[:3, 3]
         delta_rot = self.generate_matrix[:3, :3]
 
-        if self.parent is None:
+        if parent is None:
             self.pos = delta_pos
             self.rot = delta_rot
         else:
-            base_pos = self.parent.pos
-            base_rot = self.parent.rot
+            base_pos = parent.pos
+            base_rot = parent.rot
             self.pos = base_pos + delta_pos
             self.rot = base_rot @ delta_rot
 
+        self.gl_pos = np.array([self.pos[2], self.pos[0], self.pos[1]])
+
     @property
-    def generate_matrix(self):
+    def generate_matrix(self) -> np.ndarray:
         s_t = self.sin(self.theta)
         c_t = self.cos(self.theta)
         s_a = self.sin(self.alpha)
@@ -119,15 +108,5 @@ class Joint:
             return -1
         return np.cos(np.deg2rad(x))
 
-
-class CoordinatesSystem:
-    def __init__(self, pos, rot, number):
-        self.pos = pos
-        self.rot = rot
-        #self.point = vp.sphere(pos=self.pos, radius=0.1)
-        self.axis = []
-        self.labels = []
-        text = [f'X_{number}', f'Y_{number}', f'Z_{number}']
-        #for i in range(3):
-        #    self.axis.append(vp.cylinder(pos=self.pos, axis=self.rot[i], color=colors[i], radius=0.02))
-        #    self.labels.append(vp.label(pos=self.pos + self.rot[i], text=text[i], box=False))
+    def draw_self(self, gl):
+        gl.cube(self.gl_pos - Joint.size/2, Joint.size)
