@@ -109,4 +109,4 @@ class Joint:
         return np.cos(np.deg2rad(x))
 
     def draw_self(self, gl):
-        gl.cube(self.gl_pos - Joint.size/2, Joint.size)
+        pass

@@ -272,36 +272,3 @@ class GLWidget(QtWidgets.QOpenGLWidget):
     def paintGL(self) -> None:
         glClear(GL_COLOR_BUFFER_BIT)
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 12*3)
-
-    @staticmethod
-    def cube(pos: np.ndarray, size: float):
-
-        glVertex3d(pos[0],          pos[1],         pos[2])
-        glVertex3d(pos[0]+size,     pos[1],         pos[2])
-        glVertex3d(pos[0]+size,     pos[1]+size,    pos[2])
-        glVertex3d(pos[0],          pos[1]+size,    pos[2])
-
-        glVertex3d(pos[0],          pos[1],         pos[2])
-        glVertex3d(pos[0],          pos[1] + size,  pos[2])
-        glVertex3d(pos[0],          pos[1] + size,  pos[2] + size)
-        glVertex3d(pos[0],          pos[1],         pos[2] + size)
-
-        glVertex3d(pos[0],          pos[1] + size,  pos[2])
-        glVertex3d(pos[0] + size,   pos[1] + size,  pos[2] + size)
-        glVertex3d(pos[0] + size,   pos[1] + size,  pos[2])
-        glVertex3d(pos[0],          pos[1] + size,  pos[2] + size)
-
-        glVertex3d(pos[0] + size,   pos[1],         pos[2])
-        glVertex3d(pos[0] + size,   pos[1] + size,  pos[2])
-        glVertex3d(pos[0] + size,   pos[1] + size,  pos[2] + size)
-        glVertex3d(pos[0] + size,   pos[1],         pos[2] + size)
-
-        glVertex3d(pos[0],          pos[1],         pos[2])
-        glVertex3d(pos[0],          pos[1],         pos[2] + size)
-        glVertex3d(pos[0] + size,   pos[1],         pos[2] + size)
-        glVertex3d(pos[0] + size,   pos[1],         pos[2])
-
-        glVertex3d(pos[0],          pos[1],         pos[2] + size)
-        glVertex3d(pos[0],          pos[1] + size,  pos[2] + size)
-        glVertex3d(pos[0] + size,   pos[1] + size,  pos[2] + size)
-        glVertex3d(pos[0] + size,   pos[1],         pos[2] + size)
