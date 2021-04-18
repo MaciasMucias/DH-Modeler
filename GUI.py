@@ -240,6 +240,7 @@ class GLWidget(QtWidgets.QOpenGLWidget):
 
         # Build data
         data = np.zeros((Robot.len+1)*36*4, [("position", np.float32, 3), ("color", np.float32, 4)])
+
         # Request a buffer slot from GPU
         buffer = glGenBuffers(1)
 
