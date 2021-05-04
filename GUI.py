@@ -187,23 +187,6 @@ class Ui_MainWindow(object):
         Robot.return_joint(self.joint_menu.currentIndex()).theta_var = self.theta_var.isChecked()
 
 
-vertex_code = '''
-attribute vec2 position;
-void main()
-{
-  gl_Position = vec4(position, 0.0, 1.0);
-}
-'''
-
-
-fragment_code = '''
-void main()
-{
-  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-}
-'''
-
-
 def glCheckError():
     while a := glGetError():
         print("[OpenGL Error] (", a, ")")
@@ -221,36 +204,7 @@ class GLWidget(QtWidgets.QOpenGLWidget):
         self.indices = np.array([0, 1, 2, 2, 3, 0], dtype=np.uint32)
 
     def initializeGL(self) -> None:
-        program = glCreateProgram()
-        vertex = glCreateShader(GL_VERTEX_SHADER)
-        fragment = glCreateShader(GL_FRAGMENT_SHADER)
-
-        # Set shader source
-        glShaderSource(vertex, vertex_code)
-        glShaderSource(fragment, fragment_code)
-
-        # Compile shaders
-        glCompileShader(vertex)
-        if not glGetShaderiv(vertex, GL_COMPILE_STATUS):
-            error = glGetShaderInfoLog(vertex).decode()
-            raise RuntimeError("Vertex shader compilation error: %s", error)
-
-        glCompileShader(fragment)
-        if not glGetShaderiv(fragment, GL_COMPILE_STATUS):
-            error = glGetShaderInfoLog(fragment).decode()
-            raise RuntimeError("Fragment shader compilation error: %s", error)
-
-        glAttachShader(program, vertex)
-        glAttachShader(program, fragment)
-        glLinkProgram(program)
-
-        if not glGetProgramiv(program, GL_LINK_STATUS):
-            raise RuntimeError('Linking error: %s', glGetProgramInfoLog(program))
-
-        glDetachShader(program, vertex)
-        glDetachShader(program, fragment)
-
-        glUseProgram(program)
+        program = self.create_shader()
 
         self.vao = VertexArray(program)
         self.vbo = VertexBuffer(self.data)
@@ -269,3 +223,49 @@ class GLWidget(QtWidgets.QOpenGLWidget):
         glClear(GL_COLOR_BUFFER_BIT)
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
+
+    @staticmethod
+    def parse_shader(filepath):
+        stype = None
+        shader_code = ["", ""]
+        with open(filepath, "r") as f:
+            while line := f.readline():
+                if line.find("#shader") != -1:
+                    if line.find("vertex") != -1:
+                        stype = 0
+                    elif line.find("fragment") != -1:
+                        stype = 1
+                else:
+                    shader_code[stype] += line
+        return shader_code
+
+    @staticmethod
+    def create_shader():
+        program = glCreateProgram()
+        shader_code = GLWidget.parse_shader("./res/shaders/basic.shader")
+        vertex = GLWidget.compile_shader(GL_VERTEX_SHADER, shader_code[0], "Vertex")
+        fragment = GLWidget.compile_shader(GL_FRAGMENT_SHADER, shader_code[1], "Fragment")
+
+        glAttachShader(program, vertex)
+        glAttachShader(program, fragment)
+        glLinkProgram(program)
+        glValidateProgram(program)
+
+        if not glGetProgramiv(program, GL_LINK_STATUS):
+            raise RuntimeError('Linking error: %s', glGetProgramInfoLog(program))
+
+        glDeleteShader(vertex)
+        glDeleteShader(fragment)
+
+        glUseProgram(program)
+        return program
+
+    @staticmethod
+    def compile_shader(shader_type, shader_code, name):
+        shader = glCreateShader(shader_type)
+        glShaderSource(shader, shader_code)
+        glCompileShader(shader)
+        if not glGetShaderiv(shader, GL_COMPILE_STATUS):
+            error = glGetShaderInfoLog(shader).decode()
+            raise RuntimeError("%s shader compilation error: %s", name, error)
+        return shader
