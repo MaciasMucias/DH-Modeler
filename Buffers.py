@@ -17,11 +17,12 @@ class VertexBuffer:
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 
-class VertexBufferLayout:
-    def __init__(self, count: int, gl_type: int, normalised: bool):
+class VertexLayoutElement:
+    def __init__(self, gl_type: int, count: int, normalised: bool, attrib: str):
         self.gl_type = gl_type
         self.count = count
         self.normalised = normalised
+        self.attrib = attrib
 
 
 gl_type_bytes = {
@@ -36,9 +37,9 @@ class VertexBufferLayout:
         self.__elements = []
         self.__stride = 0
 
-    def push(self, gl_type, count, normalised):
-        self.__elements.append(VertexLayoutElement(gl_type, count, normalised))
-        self.__stride += gl_type_bytes[gl_type]
+    def push(self, gl_type, count, normalised, attrib):
+        self.__elements.append(VertexLayoutElement(gl_type, count, normalised, attrib))
+        self.__stride += gl_type_bytes[gl_type] * count
 
     @property
     def stride(self):
@@ -69,7 +70,8 @@ class IndexBuffer:
 
 
 class VertexArray:
-    def __init__(self):
+    def __init__(self, program):
+        self.program = program
         self.__renderer_id = glGenVertexArrays(1)
 
     def bind(self):
@@ -84,8 +86,9 @@ class VertexArray:
         vb.bind()
         elements = layout.elements
         offset = 0
-        for ind, element in enumerate(elements):
-            glEnableVertexAttribArray(ind)
-            glVertexAttribPointer(ind, element.count, element.gl_type, element.normalised, layout.stride, offset)
+        for element in elements:
+            loc = glGetAttribLocation(self.program, element.attrib)
+            glEnableVertexAttribArray(loc)
+            glVertexAttribPointer(loc, element.count, element.gl_type, element.normalised, layout.stride, ctypes.c_void_p(offset))
             offset += gl_type_bytes[element.gl_type] * element.count
 

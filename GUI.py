@@ -252,28 +252,15 @@ class GLWidget(QtWidgets.QOpenGLWidget):
 
         glUseProgram(program)
 
-        # self.color = glGetUniformLocation(program, "u_Color")
-        # assert self.color != -1
-
-        # Request a buffer slot from GPU
-        self.vao = glGenVertexArrays(1)
-        glBindVertexArray(self.vao)
-
+        self.vao = VertexArray(program)
         self.vbo = VertexBuffer(self.data)
-
-        # Make this buffer the default one
-
-        stride = self.data.strides[0]
-        offset = ctypes.c_void_p(0)
-        loc = glGetAttribLocation(program, "position")
-        glEnableVertexAttribArray(loc)
-        glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
-
         self.ibo = IndexBuffer(self.indices)
-        self.ibo.bind()
 
-        # self.vbo.__del__()
-        # self.ibo.__del__()
+        layout = VertexBufferLayout()
+        layout.push(GL_FLOAT, 2, GL_FALSE, "position")
+
+        self.vao.add_buffer(self.vbo, layout)
+        self.ibo.bind()
 
     def paintGL(self):
         self.data += 0.001
