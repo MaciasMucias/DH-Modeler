@@ -21,6 +21,9 @@ class Shader:
     def set_uniform_4f(self, name, v0, v1, v2, v3):
         glUniform4f(self.get_uniform_location(name), v0, v1, v2, v3)
 
+    def set_uniform_mat4f(self, name, mat):
+        glUniformMatrix4fv(self.get_uniform_location(name), 1, GL_FALSE, mat)
+
     def get_uniform_location(self, name):
         if name in self.__uniform_location_cache.keys():
             return self.__uniform_location_cache[name]

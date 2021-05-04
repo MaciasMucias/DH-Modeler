@@ -9,6 +9,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
 from OpenGL.GL import *
+import glm
 
 from CoordSys import Robot
 from Buffers import VertexBuffer, IndexBuffer
@@ -205,8 +206,13 @@ class GLWidget(QtWidgets.QOpenGLWidget):
         self.indices = np.array([0, 1, 2, 2, 3, 0], dtype=np.uint32)
 
     def initializeGL(self) -> None:
+
+        proj = glm.orthoRH_NO(-821/400, 821/400, -461/400, 461/400, -1, 1)
+        proj = np.array(proj)
+
         self.shader = Shader("./res/shaders/basic.shader")
         self.shader.bind()
+        self.shader.set_uniform_mat4f("uMVP", proj)
 
         self.vao = VertexArray(self.shader.program)
         self.vbo = VertexBuffer(self.data)

@@ -12,4 +12,3 @@ class Renderer:
     def clear(self):
         glClear(GL_COLOR_BUFFER_BIT)
         # glClear(GL_DEPTH_BUFFER)
-
