@@ -1,14 +1,15 @@
 from OpenGL.GL import *
-from inspect import currentframe, getframeinfo
 
 
-def glClearError():
-    while glGetError() != GL_NO_ERROR:
-        pass
+class Renderer:
+    def draw(self, vao, ibo, shader):
+        shader.bind()
+        vao.bind()
+        ibo.bind()
 
+        glDrawElements(GL_TRIANGLES, ibo.count, GL_UNSIGNED_INT, None)
 
-def glLogCall(function):
-    glClearError()
-    function()
-    while error := glGetError():
-        print(getframeinfo(currentframe()).filename + ':' + str(getframeinfo(currentframe()).lineno) + ' - ', error)
+    def clear(self):
+        glClear(GL_COLOR_BUFFER_BIT)
+        # glClear(GL_DEPTH_BUFFER)
+

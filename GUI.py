@@ -14,6 +14,7 @@ from CoordSys import Robot
 from Buffers import VertexBuffer, IndexBuffer
 from VertexBufferArray import VertexBufferLayout, VertexArray
 from Shader import Shader
+from Renderer import Renderer
 
 
 Robot = Robot()
@@ -199,6 +200,8 @@ class GLWidget(QtWidgets.QOpenGLWidget):
         self.gray = QtGui.QColor.fromRgb(128, 128, 128)
         self.data = np.array([(-1, -1), (1, -1), (1, 1), (-1, 1)], dtype=np.float32)
         self.data *= 0.5
+        self.r = 0.45
+        self.inc = 0.02
         self.indices = np.array([0, 1, 2, 2, 3, 0], dtype=np.uint32)
 
     def initializeGL(self) -> None:
@@ -215,10 +218,19 @@ class GLWidget(QtWidgets.QOpenGLWidget):
         self.vao.add_buffer(self.vbo, layout)
         self.ibo.bind()
 
+        self.render = Renderer()
+
     def paintGL(self):
-        self.data += 0.001
 
-        glBufferData(GL_ARRAY_BUFFER, self.data.nbytes, self.data, GL_DYNAMIC_DRAW)
-        glClear(GL_COLOR_BUFFER_BIT)
+        self.render.clear()
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
+        self.shader.bind()
+        self.shader.set_uniform_4f('uColor', self.r, 0.3, 0.8, 1.0)
+
+        self.render.draw(self.vao, self.ibo, self.shader)
+
+        if self.r >= 0.9:
+            self.inc = -0.02
+        elif self.r <= 0.1:
+            self.inc = 0.02
+        self.r += self.inc

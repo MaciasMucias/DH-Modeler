@@ -31,5 +31,5 @@ class IndexBuffer:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
     @property
-    def get_count(self):
+    def count(self):
         return self.__count
