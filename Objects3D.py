@@ -15,8 +15,10 @@ class Object3D:
     def set_rotate(self, angle, axis):
         self.model = glm.rotate(self.model, glm.radians(angle), glm.vec3(axis))
 
-    def set_position(self, x, y, z):
-        self.model = glm.translate(self.model, glm.vec3(x, y, z))
+    def set_translate(self, x, y, z):
+        print(self.model)
+        self.model = glm.transpose(glm.translate(self.model, glm.vec3(x, y, z)))
+        print(self.model)
 
     def set_stretch(self, x, y, z):
         self.model = glm.scale(self.model, glm.vec3(x, y, z))
@@ -88,7 +90,6 @@ class Cube(Shape3D):
         layout = VertexBufferLayout()
         layout.push(GL_FLOAT, 3, GL_FALSE, "position")
         layout.push(GL_FLOAT, 3, GL_FALSE, "normal")
-        # layout.push(GL_FLOAT, 3, GL_FALSE, "color")
 
         super(Cube, self).__init__(material, layout, data)
 

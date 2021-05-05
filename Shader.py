@@ -1,5 +1,6 @@
 from OpenGL.GL import *
 import numpy as np
+import copy
 
 
 class Shader:
@@ -19,8 +20,11 @@ class Shader:
     def unbind():
         glUseProgram(0)
 
-    def set_uniform_4f(self, name, v0, v1, v2, v3):
-        glUniform4f(self.get_uniform_location(name), v0, v1, v2, v3)
+    def set_uniform_3f(self, name, v):
+        glUniform3f(self.get_uniform_location(name), *v)
+
+    def set_uniform_4f(self, name, v):
+        glUniform4f(self.get_uniform_location(name), *v)
 
     def set_uniform_mat4f(self, name, mat):
         glUniformMatrix4fv(self.get_uniform_location(name), 1, GL_FALSE, np.array(mat))
@@ -86,13 +90,16 @@ class Material:
         self.__uniforms = dict()
 
     def add_uniform(self, utype, name, value):
-        self.__uniforms[name] = (utype, value)                                                                      # TODO - Implement Materials
+        self.__uniforms[name] = (utype, value)                                              # TODO - Implement Materials
 
     def bind(self):
         self.shader.bind()
-        for name, utype, value in self.__uniforms.items():
+        for name, (utype, value) in self.__uniforms.items():
             utype(name, value)
 
     @property
     def program(self):
         return self.shader.program
+
+    def copy(self):
+        return copy.deepcopy(self)

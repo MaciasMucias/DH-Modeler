@@ -17,7 +17,7 @@ void main()
   FragPos = vec3(uModel * vec4(position, 1.0));
   Normal = mat3(transpose(inverse(uModel))) * normal;
 
-  gl_Position = uProjection * uView * vec4(FragPos, 1.0);
+  gl_Position = vec4(FragPos, 1.0) * uView * uProjection;
 }
 
 #shader fragment
@@ -28,8 +28,7 @@ layout(location = 0) out vec4 color;
 in vec3 FragPos;
 in vec3 Normal;
 
-//uniform vec3 uColor;
-vec3 uColor = vec3(1.0, 0.1, 0.1);
+uniform vec3 uColor;
 vec3 lightColor = vec3(1.0, 1.0, 1.0);
 vec3 lightPos = vec3(1.0, 1.0, 1.0);
 float ambientStrength = 0.1;
