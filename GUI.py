@@ -12,10 +12,9 @@ from OpenGL.GL import *
 import glm
 
 from CoordSys import Robot
-from Buffers import VertexBuffer, IndexBuffer
-from VertexBufferArray import VertexBufferLayout, VertexArray
 from Shader import Shader
 from Renderer import Renderer
+from Objects3D import Object3D, Cube
 
 
 Robot = Robot()
@@ -198,45 +197,20 @@ class GLWidget(QtWidgets.QOpenGLWidget):
         super(GLWidget, self).__init__(parent)
         self.setFormat(glFormat)
 
-        self.data = np.array([(-1, -1), (1, -1), (1, 1), (-1, 1)], dtype=np.float32)
-        self.data *= 0.5
-        self.r = 0.45
-        self.inc = 0.02
-        self.indices = np.array([0, 1, 2, 2, 3, 0], dtype=np.uint32)
-
     def initializeGL(self) -> None:
 
         self.proj = glm.ortho(-821/200, 821/200, -461/200, 461/200)
-        self.model = glm.rotate(glm.identity(glm.mat4), glm.pi()/4, glm.vec3(0, 0, 1))
-        # self.proj = glm.perspectiveFovRH_NO(glm.radians(50), 821/400, 461/400, -1, 10)
 
-        self.shader = Shader("./res/shaders/basic.shader")
-        self.shader.bind()
-        self.shader.set_uniform_mat4f("uMVP", self.proj * self.model)
+        self.shader = Shader("./res/shaders/cube.shader")
 
-        self.vao = VertexArray(self.shader.program)
-        self.vbo = VertexBuffer(self.data)
-        self.ibo = IndexBuffer(self.indices)
-
-        layout = VertexBufferLayout()
-        layout.push(GL_FLOAT, 2, GL_FALSE, "position")
-
-        self.vao.add_buffer(self.vbo, layout)
-        self.ibo.bind()
-
-        self.render = Renderer()
+        self.cube = Cube((1, 0, 0), self.shader)
+        self.Object = Object3D(self.cube)
+        self.Object.set_rotate(glm.pi()/4, glm.vec3(0, 0, 1))
 
     def paintGL(self):
 
-        self.render.clear()
+        Renderer.clear()
 
-        self.shader.bind()
-        self.shader.set_uniform_4f('uColor', self.r, 0.8, 0.8, 1.0)
-        self.shader.set_uniform_mat4f("uMVP", self.model * self.proj)
-        self.render.draw(self.vao, self.ibo, self.shader)
+        self.Object.set_rotate(5, glm.vec3(1, 0, 0))
+        self.Object.draw(self.proj)
 
-        if self.r >= 0.9:
-            self.inc = -0.05
-        elif self.r <= 0.1:
-            self.inc = 0.05
-        self.r += self.inc

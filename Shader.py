@@ -76,7 +76,7 @@ class Shader:
         glCompileShader(shader)
         if not glGetShaderiv(shader, GL_COMPILE_STATUS):
             error = glGetShaderInfoLog(shader).decode()
-            raise RuntimeError("%s shader compilation error: %s", name, error)
+            raise RuntimeError(f"{name} shader compilation error: {error}")
         return shader
 
 

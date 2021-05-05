@@ -1,8 +1,9 @@
 import glm
 import numpy as np
+from OpenGL.GL import GL_FLOAT, GL_FALSE
 
-from Buffers import *
-from VertexBufferArray import VertexArray
+from Buffers import VertexBuffer, IndexBuffer
+from VertexBufferArray import VertexArray, VertexBufferLayout
 from Renderer import Renderer
 
 
@@ -20,21 +21,22 @@ class Object3D:
     def set_stretch(self, x, y, z):
         self.model = glm.scale(self.model, glm.vec3(x, y, z))
 
-    def draw(self):
-        self.shape3d.draw(self.model)
+    def draw(self, mat):
+        self.shape3d.draw(self.model * mat)
 
 
 class Shape3D:
-    def __init__(self, shader, data, indices):
+    def __init__(self, shader, layout, data, indices):
         self.shader = shader
         self.vao = VertexArray(shader.program)
         self.vbo = VertexBuffer(data)
         self.ibo = IndexBuffer(indices)
+        self.vao.add_buffer(self.vbo, layout)
 
     def draw(self, mat):
         self.shader.bind()
-        self.shader.set_uniform_mat4f(mat)
-        Renderer.draw(self.vao, self.vbo, self.ibo)
+        self.shader.set_uniform_mat4f("uMVP", mat)
+        Renderer.draw(self.vao, self.ibo, self.shader)
 
 
 class Cube(Shape3D):
@@ -54,11 +56,16 @@ class Cube(Shape3D):
                             3, 0, 4, 4, 7, 3,
                             4, 5, 6, 6, 7, 4], dtype=np.uint32)
 
-        super(Cube, self).__init__(shader, data, indices)
+        layout = VertexBufferLayout()
+        layout.push(GL_FLOAT, 3, GL_FALSE, "position")
+        layout.push(GL_FLOAT, 3, GL_FALSE, "color")
+
+        super(Cube, self).__init__(shader, layout, data, indices)
 
 
 class Cylinder(Shape3D):
     def __init__(self, shader):
         data = None                                                        # TODO - Implement cylinder vertex generation
         indices = None
-        super(Cylinder, self).__init__(shader, data, indices)
+        layout = None
+        super(Cylinder, self).__init__(shader, layout, data, indices)
