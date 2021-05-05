@@ -1,4 +1,5 @@
 from OpenGL.GL import *
+import numpy as np
 
 
 class Shader:
@@ -22,7 +23,7 @@ class Shader:
         glUniform4f(self.get_uniform_location(name), v0, v1, v2, v3)
 
     def set_uniform_mat4f(self, name, mat):
-        glUniformMatrix4fv(self.get_uniform_location(name), 1, GL_FALSE, mat)
+        glUniformMatrix4fv(self.get_uniform_location(name), 1, GL_FALSE, np.array(mat))
 
     def get_uniform_location(self, name):
         if name in self.__uniform_location_cache.keys():
@@ -77,3 +78,11 @@ class Shader:
             error = glGetShaderInfoLog(shader).decode()
             raise RuntimeError("%s shader compilation error: %s", name, error)
         return shader
+
+
+class Material:
+    def __init__(self, shader):
+        self.shader = shader
+
+    def add_uniform(self, name, value):
+        pass                                                                      # TODO - Implement Materials

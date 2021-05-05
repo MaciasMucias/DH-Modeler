@@ -198,7 +198,6 @@ class GLWidget(QtWidgets.QOpenGLWidget):
         super(GLWidget, self).__init__(parent)
         self.setFormat(glFormat)
 
-        self.gray = QtGui.QColor.fromRgb(128, 128, 128)
         self.data = np.array([(-1, -1), (1, -1), (1, 1), (-1, 1)], dtype=np.float32)
         self.data *= 0.5
         self.r = 0.45
@@ -207,12 +206,13 @@ class GLWidget(QtWidgets.QOpenGLWidget):
 
     def initializeGL(self) -> None:
 
-        proj = glm.orthoRH_NO(-821/400, 821/400, -461/400, 461/400, -1, 1)
-        proj = np.array(proj)
+        self.proj = glm.ortho(-821/200, 821/200, -461/200, 461/200)
+        self.model = glm.rotate(glm.identity(glm.mat4), glm.pi()/4, glm.vec3(0, 0, 1))
+        # self.proj = glm.perspectiveFovRH_NO(glm.radians(50), 821/400, 461/400, -1, 10)
 
         self.shader = Shader("./res/shaders/basic.shader")
         self.shader.bind()
-        self.shader.set_uniform_mat4f("uMVP", proj)
+        self.shader.set_uniform_mat4f("uMVP", self.proj * self.model)
 
         self.vao = VertexArray(self.shader.program)
         self.vbo = VertexBuffer(self.data)
@@ -231,12 +231,12 @@ class GLWidget(QtWidgets.QOpenGLWidget):
         self.render.clear()
 
         self.shader.bind()
-        self.shader.set_uniform_4f('uColor', self.r, 0.3, 0.8, 1.0)
-
+        self.shader.set_uniform_4f('uColor', self.r, 0.8, 0.8, 1.0)
+        self.shader.set_uniform_mat4f("uMVP", self.model * self.proj)
         self.render.draw(self.vao, self.ibo, self.shader)
 
         if self.r >= 0.9:
-            self.inc = -0.02
+            self.inc = -0.05
         elif self.r <= 0.1:
-            self.inc = 0.02
+            self.inc = 0.05
         self.r += self.inc
