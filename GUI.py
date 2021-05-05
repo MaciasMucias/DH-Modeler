@@ -11,9 +11,8 @@ from OpenGL.GL import *
 import glm
 
 from CoordSys import Robot
-from Shader import Material
 from Renderer import Renderer
-from Objects3D import Object3D, Cube
+
 
 
 Robot = Robot()
@@ -200,43 +199,10 @@ class GLWidget(QtWidgets.QOpenGLWidget):
         glEnable(GL_DEPTH_TEST)
         self.proj = glm.orthoRH(-821/200, 821/200, -461/200, 461/200, -2, 2)
         self.view = glm.identity(glm.mat4)
-
-        material_gray = Material("./res/shaders/cube.shader")
-        material_red = material_gray.copy()
-        material_green = material_gray.copy()
-        material_blue = material_gray.copy()
-
-        material_gray.add_uniform(material_gray.shader.set_uniform_3f, 'uColor', (0.5, 0.5, 0.5))
-        material_red.add_uniform(material_red.shader.set_uniform_3f, 'uColor', (1, 0, 0))
-        material_green.add_uniform(material_green.shader.set_uniform_3f, 'uColor', (0, 1, 0))
-        material_blue.add_uniform(material_blue.shader.set_uniform_3f, 'uColor', (0, 0, 1))
-
-        self.gray_cube = Cube(material_gray)
-        self.red_cube = Cube(material_red)
-        self.green_cube = Cube(material_green)
-        self.blue_cube = Cube(material_blue)
-
-        rod = 0.2
-
-        self.cube1 = Object3D(self.gray_cube)
-        self.cube2 = Object3D(self.red_cube)
-        self.cube3 = Object3D(self.green_cube)
-        self.cube4 = Object3D(self.blue_cube)
-        self.cube1.set_stretch(0.5, 0.5, 0.5)
-        self.cube2.set_stretch(1, rod, rod)
-        self.cube2.set_translate(0.5, 0, 0)
-        self.cube3.set_stretch(rod, 1, rod)
-        self.cube3.set_translate(0, 0.5, 0)
-        self.cube4.set_stretch(rod, rod, 1)
-        self.cube4.set_translate(0, 0, 0.5)
+        from Objects3D import coord_3d
+        self.coord_3d = coord_3d.copy()
 
     def paintGL(self):
         Renderer.clear()
-        self.cube1.set_rotate(5, glm.vec3(1, -1, 1))
-        self.cube2.set_rotate(5, glm.vec3(1, -1, 1))
-        self.cube3.set_rotate(5, glm.vec3(1, -1, 1))
-        self.cube4.set_rotate(5, glm.vec3(1, -1, 1))
-        self.cube1.draw(self.proj, self.view)
-        self.cube2.draw(self.proj, self.view)
-        self.cube3.draw(self.proj, self.view)
-        self.cube4.draw(self.proj, self.view)
+        self.view = glm.rotate(self.view, glm.radians(5), glm.vec3(0, 1, 0))
+        self.coord_3d.draw(self.proj, self.view)
