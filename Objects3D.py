@@ -21,51 +21,81 @@ class Object3D:
     def set_stretch(self, x, y, z):
         self.model = glm.scale(self.model, glm.vec3(x, y, z))
 
-    def draw(self, mat):
-        self.shape3d.draw(self.model * mat)
+    def draw(self, proj, view):
+        self.shape3d.draw(proj, view, self.model)
 
 
 class Shape3D:
-    def __init__(self, shader, layout, data, indices):
-        self.shader = shader
-        self.vao = VertexArray(shader.program)
+    def __init__(self, material, layout, data, indices=None):
+        self.material = material
+        self.vao = VertexArray(material.program)
         self.vbo = VertexBuffer(data)
-        self.ibo = IndexBuffer(indices)
+        self.ibo = IndexBuffer(indices) if indices is not None else None
         self.vao.add_buffer(self.vbo, layout)
 
-    def draw(self, mat):
-        self.shader.bind()
-        self.shader.set_uniform_mat4f("uMVP", mat)
-        Renderer.draw(self.vao, self.ibo, self.shader)
+    def draw(self, uProjection, uView, uModel):
+        self.material.bind()
+        self.material.shader.set_uniform_mat4f("uProjection", uProjection)
+        self.material.shader.set_uniform_mat4f("uView", uView)
+        self.material.shader.set_uniform_mat4f("uModel", uModel)
+        Renderer.draw(self.vao, self.ibo if self.ibo is not None else self.vbo, self.material.shader)
 
 
 class Cube(Shape3D):
-    def __init__(self, color, shader):
-        data = np.array([(-0.5, -0.5, -0.5, *color),
-                         ( 0.5, -0.5, -0.5, *color),
-                         ( 0.5,  0.5, -0.5, *color),
-                         (-0.5,  0.5, -0.5, *color),
-                         (-0.5, -0.5,  0.5, *color),
-                         ( 0.5, -0.5,  0.5, *color),
-                         ( 0.5,  0.5,  0.5, *color),
-                         (-0.5,  0.5,  0.5, *color)], dtype=np.float32)
-        indices = np.array([0, 1, 2, 2, 3, 0,
-                            0, 1, 5, 5, 4, 0,
-                            1, 2, 6, 6, 5, 1,
-                            2, 3, 7, 7, 6, 2,
-                            3, 0, 4, 4, 7, 3,
-                            4, 5, 6, 6, 7, 4], dtype=np.uint32)
+    def __init__(self, material):
+        data = np.array([(-0.5, -0.5, -0.5, 0.0, 0.0, -1.0,),
+                         ( 0.5, -0.5, -0.5, 0.0, 0.0, -1.0,),
+                         ( 0.5,  0.5, -0.5, 0.0, 0.0, -1.0,),
+                         ( 0.5,  0.5, -0.5, 0.0, 0.0, -1.0,),
+                         (-0.5,  0.5, -0.5, 0.0, 0.0, -1.0,),
+                         (-0.5, -0.5, -0.5, 0.0, 0.0, -1.0,),
+
+                         (-0.5, -0.5,  0.5, 0.0, 0.0, 1.0,),
+                         ( 0.5, -0.5,  0.5, 0.0, 0.0, 1.0,),
+                         ( 0.5,  0.5,  0.5, 0.0, 0.0, 1.0,),
+                         ( 0.5,  0.5,  0.5, 0.0, 0.0, 1.0,),
+                         (-0.5,  0.5,  0.5, 0.0, 0.0, 1.0,),
+                         (-0.5, -0.5,  0.5, 0.0, 0.0, 1.0,),
+
+                         (-0.5,  0.5,  0.5, -1.0, 0.0, 0.0,),
+                         (-0.5,  0.5, -0.5, -1.0, 0.0, 0.0,),
+                         (-0.5, -0.5, -0.5, -1.0, 0.0, 0.0,),
+                         (-0.5, -0.5, -0.5, -1.0, 0.0, 0.0,),
+                         (-0.5, -0.5,  0.5, -1.0, 0.0, 0.0,),
+                         (-0.5,  0.5,  0.5, -1.0, 0.0, 0.0,),
+
+                         ( 0.5,  0.5,  0.5, 1.0, 0.0, 0.0,),
+                         ( 0.5,  0.5, -0.5, 1.0, 0.0, 0.0,),
+                         ( 0.5, -0.5, -0.5, 1.0, 0.0, 0.0,),
+                         ( 0.5, -0.5, -0.5, 1.0, 0.0, 0.0,),
+                         ( 0.5, -0.5,  0.5, 1.0, 0.0, 0.0,),
+                         ( 0.5,  0.5,  0.5, 1.0, 0.0, 0.0,),
+
+                         (-0.5, -0.5, -0.5, 0.0, -1.0, 0.0,),
+                         ( 0.5, -0.5, -0.5, 0.0, -1.0, 0.0,),
+                         ( 0.5, -0.5,  0.5, 0.0, -1.0, 0.0,),
+                         ( 0.5, -0.5,  0.5, 0.0, -1.0, 0.0,),
+                         (-0.5, -0.5,  0.5, 0.0, -1.0, 0.0,),
+                         (-0.5, -0.5, -0.5, 0.0, -1.0, 0.0,),
+
+                         (-0.5, 0.5, -0.5, 0.0, 1.0, 0.0,),
+                         ( 0.5, 0.5, -0.5, 0.0, 1.0, 0.0,),
+                         ( 0.5, 0.5,  0.5, 0.0, 1.0, 0.0,),
+                         ( 0.5, 0.5,  0.5, 0.0, 1.0, 0.0,),
+                         (-0.5, 0.5,  0.5, 0.0, 1.0, 0.0,),
+                         (-0.5, 0.5, -0.5, 0.0, 1.0, 0.0)], dtype=np.float32)
 
         layout = VertexBufferLayout()
         layout.push(GL_FLOAT, 3, GL_FALSE, "position")
-        layout.push(GL_FLOAT, 3, GL_FALSE, "color")
+        layout.push(GL_FLOAT, 3, GL_FALSE, "normal")
+        # layout.push(GL_FLOAT, 3, GL_FALSE, "color")
 
-        super(Cube, self).__init__(shader, layout, data, indices)
+        super(Cube, self).__init__(material, layout, data)
 
 
 class Cylinder(Shape3D):
     def __init__(self, shader):
-        data = None                                                        # TODO - Implement cylinder vertex generation
+        data = None  # TODO - Implement cylinder vertex generation
         indices = None
         layout = None
         super(Cylinder, self).__init__(shader, layout, data, indices)

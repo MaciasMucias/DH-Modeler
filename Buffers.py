@@ -5,6 +5,7 @@ from OpenGL.GL import *
 class VertexBuffer:
     def __init__(self, data: np.ndarray):
         self.__renderer_id = glGenBuffers(1)
+        self.__count = data.shape[0]
         glBindBuffer(GL_ARRAY_BUFFER, self.__renderer_id)
         glBufferData(GL_ARRAY_BUFFER, data.nbytes, data, GL_STATIC_DRAW)
 
@@ -14,6 +15,10 @@ class VertexBuffer:
     @staticmethod
     def unbind():
         glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+    @property
+    def count(self):
+        return self.__count
 
 
 class IndexBuffer:

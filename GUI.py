@@ -12,7 +12,7 @@ from OpenGL.GL import *
 import glm
 
 from CoordSys import Robot
-from Shader import Shader
+from Shader import Material
 from Renderer import Renderer
 from Objects3D import Object3D, Cube
 
@@ -198,19 +198,19 @@ class GLWidget(QtWidgets.QOpenGLWidget):
         self.setFormat(glFormat)
 
     def initializeGL(self) -> None:
-
+        glEnable(GL_DEPTH_TEST)
         self.proj = glm.ortho(-821/200, 821/200, -461/200, 461/200)
+        self.view = glm.identity(glm.mat4)
 
-        self.shader = Shader("./res/shaders/cube.shader")
+        self.material = Material("./res/shaders/cube.shader")
 
-        self.cube = Cube((1, 0, 0), self.shader)
+        self.cube = Cube(self.material)
         self.Object = Object3D(self.cube)
-        self.Object.set_rotate(glm.pi()/4, glm.vec3(0, 0, 1))
 
     def paintGL(self):
 
         Renderer.clear()
 
-        self.Object.set_rotate(5, glm.vec3(1, 0, 0))
-        self.Object.draw(self.proj)
+        self.Object.set_rotate(5, glm.vec3(1, 1, 0))
+        self.Object.draw(self.proj, self.view)
 

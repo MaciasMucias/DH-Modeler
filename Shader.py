@@ -81,8 +81,18 @@ class Shader:
 
 
 class Material:
-    def __init__(self, shader):
-        self.shader = shader
+    def __init__(self, filepath):
+        self.shader = Shader(filepath)
+        self.__uniforms = dict()
 
-    def add_uniform(self, name, value):
-        pass                                                                      # TODO - Implement Materials
+    def add_uniform(self, utype, name, value):
+        self.__uniforms[name] = (utype, value)                                                                      # TODO - Implement Materials
+
+    def bind(self):
+        self.shader.bind()
+        for name, utype, value in self.__uniforms.items():
+            utype(name, value)
+
+    @property
+    def program(self):
+        return self.shader.program
