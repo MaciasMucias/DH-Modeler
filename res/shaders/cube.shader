@@ -34,7 +34,7 @@ in mat4 vView;
 uniform vec3 uColor;
 vec3 lightColor = vec3(1.0, 1.0, 1.0);
 vec4 lightPos = vec4(1.0, 1.0, 1.0, 1.0);
-float ambientStrength = 0.1;
+float ambientStrength = 0.7;
 
 void main()
 {
