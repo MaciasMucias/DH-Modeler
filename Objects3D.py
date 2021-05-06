@@ -14,14 +14,18 @@ class Object3D:
     def __init__(self, shape3d):
         self.model = glm.identity(glm.mat4)
         self.shape3d = shape3d
+        self.x = self.y = self.z = 1
 
     def set_rotate(self, angle, axis):
         self.model = glm.rotate(self.model, glm.radians(angle), glm.vec3(axis))
 
     def set_translate(self, x, y, z):
-        self.model = glm.transpose(glm.translate(self.model, glm.vec3(x, y, z)))
+        self.model = glm.translate(self.model, glm.vec3(x/self.x, y/self.y, z/self.z))
 
     def set_stretch(self, x, y, z):
+        self.x *= x
+        self.y *= y
+        self.z *= z
         self.model = glm.scale(self.model, glm.vec3(x, y, z))
 
     def draw(self, proj, view):
@@ -40,7 +44,7 @@ class Shape3D:
         self.material.bind()
         self.material.shader.set_uniform_mat4f("uProjection", uProjection)
         self.material.shader.set_uniform_mat4f("uView", uView)
-        self.material.shader.set_uniform_mat4f("uModel", uModel)
+        self.material.shader.set_uniform_mat4f("uModel", glm.transpose(uModel))
         Renderer.draw(self.vao, self.ibo if self.ibo is not None else self.vbo, self.material.shader)
 
 
