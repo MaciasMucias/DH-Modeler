@@ -1,24 +1,16 @@
 import numpy as np
-
-
-np.array([(-1, -1, -1, 0.2, 0.2, 0.2),
-          (-1,  1, -1, 0.2, 0.2, 0.2),
-          ( 1,  1, -1, 0.2, 0.2, 0.2),
-          ( 1, -1, -1, 0.2, 0.2, 0.2),
-          (-1, -1,  1, 0.2, 0.2, 0.2),
-          (-1,  1,  1, 0.2, 0.2, 0.2),
-          ( 1,  1,  1, 0.2, 0.2, 0.2),
-          ( 1, -1,  1, 0.2, 0.2, 0.2)])
-
-
+from glm import mat4
 
 
 class Robot:
     def __init__(self):
+        self.joints = None
+
+    def initialise(self):
         self.joints = [None, Joint(None), Joint(None)]
 
     def return_joint(self, i):
-        return self.joints[i + 1]
+        return self.joints[i + 2]
 
     def append_joint(self):
         if self.len > 10:
@@ -29,7 +21,7 @@ class Robot:
     def insert_joint(self, i):
         if self.len > 10:
             return 0
-        self.joints.insert(i+1, Joint(self.joints[i]))
+        self.joints.insert(i + 1, Joint(self.joints[i]))
         return 1
 
     def pop_joint(self):
@@ -41,7 +33,7 @@ class Robot:
     def remove_joint(self, i):
         if self.len == 2:
             return 0
-        self.joints.pop(i+1)
+        self.joints.pop(i + 1)
         return 1
 
     @property
@@ -49,45 +41,35 @@ class Robot:
         return len(self.joints) - 1
 
     def update_joint(self, joint):
-        joint.update(self.joints.index(joint)-1)
+        joint.update(self.joints[self.joints.index(joint) - 1])
 
-    def draw(self, gl):
-        for joint in reversed(self.joints):
-            joint.draw_self(gl)
+    def draw(self, proj, view):
+        for joint in reversed(self.joints[1:]):
+            joint.draw(proj, view)
 
 
 class Joint:
     pos: np.ndarray
     rot: np.ndarray
-    gl_pos: np.ndarray
-    gl_rot: np.ndarray
     size = 0.5
 
     def __init__(self, parent):
+        from Objects3D import coord_3d
+        self.coord_3d = coord_3d.copy()
+
         self.alpha, self.a, self.d, self.theta = 0.0, 0.0, 0.0, 0.0
         self.d_var, self.theta_var = False, False
 
-        self.pos = np.zeros(shape=(3, 1), dtype=np.float32)
-        self.rot = np.zeros(shape=(3, 3), dtype=np.float32)
-        self.gl_pos = np.zeros(shape=(3, 1), dtype=np.float32)
-        self.gl_rot = np.zeros(shape=(3, 3), dtype=np.float32)
+        self.mat = None
 
         self.update(parent)
 
     def update(self, parent):
-        delta_pos = self.generate_matrix[:3, 3]
-        delta_rot = self.generate_matrix[:3, :3]
-
         if parent is None:
-            self.pos = delta_pos
-            self.rot = delta_rot
+            self.mat = self.generate_matrix
         else:
-            base_pos = parent.pos
-            base_rot = parent.rot
-            self.pos = base_pos + delta_pos
-            self.rot = base_rot @ delta_rot
+            self.mat = parent.generate_matrix @ self.generate_matrix
 
-        self.gl_pos = np.array([self.pos[2], self.pos[0], self.pos[1]])
 
     @property
     def generate_matrix(self) -> np.ndarray:
@@ -99,6 +81,7 @@ class Joint:
                          [s_t, c_t * c_a, -c_t * s_a, self.a * s_t],
                          [0, s_a, c_a, self.d],
                          [0, 0, 0, 1]])  # Macierz transformacji jednorodnej
+
 
     @staticmethod  # Sin i cos zwracający wartości całkowite dla popularnych kątów
     def sin(x):
@@ -120,5 +103,5 @@ class Joint:
             return -1
         return np.cos(np.deg2rad(x))
 
-    def draw_self(self, gl):
-        pass
+    def draw(self, proj, view):
+        self.coord_3d.draw(proj, view)

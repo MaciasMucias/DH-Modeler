@@ -8,11 +8,13 @@ from Buffers import VertexBuffer, IndexBuffer
 from VertexBufferArray import VertexArray, VertexBufferLayout
 from Shader import Material
 from Renderer import Renderer
+from Matrices import mat4, ViewMat
 
 
 class Object3D:
     def __init__(self, shape3d):
         self.model = glm.identity(glm.mat4)
+        self.external_mat = glm.identity(glm.mat4)
         self.shape3d = shape3d
         self.x = self.y = self.z = 0
         self.x_stretch = self.y_stretch = self.z_stretch = 1
@@ -33,6 +35,9 @@ class Object3D:
         self.z += z
         self.model = glm.translate(self.model, glm.vec3(-y/self.y_stretch, -z/self.z_stretch, x/self.x_stretch))
 
+    def abs_translate(self, x, y, z):
+        self.model += glm.translate(glm.identity(glm.mat4), glm.vec3(-y, -z, x))
+
     def set_stretch(self, x, y, z):
         self.x_stretch *= x
         self.y_stretch *= y
@@ -40,7 +45,10 @@ class Object3D:
         self.model = glm.scale(self.model, glm.vec3(y, z, x))
 
     def draw(self, proj, view):
-        self.shape3d.draw(proj, view, self.model)
+        self.shape3d.draw(proj, view, self.external_mat * self.model)
+
+    def apply_mat(self, mat):
+        self.external_mat = mat
 
 
 class Shape3D:
@@ -121,6 +129,8 @@ class Cylinder(Shape3D):
 class ObjectGroup:
     def __init__(self):
         self.objects = []
+        self.x = self.y = self.z = 0
+        self.rx = self.ry = self.rz = 0
 
     def add_object(self, object3d):
         self.objects.append(object3d)
@@ -129,9 +139,51 @@ class ObjectGroup:
         for i in self.objects:
             i.rotate_around_origin(angle, axis)
 
+    def rotate_x(self, angle):
+        self.rx += 0
+        for i in self.objects:
+            i.rotate_around_origin(angle, (1, 0, 0))
+
+    def rotate_y(self, angle):
+        self.ry += 0
+        for i in self.objects:
+            i.rotate_around_origin(angle, (0, 1, 0))
+
+    def rotate_z(self, angle):
+        self.rz += 0
+        for i in self.objects:
+            i.rotate_around_origin(angle, (0, 0, 1))
+
+    def set_rot(self, rx, ry, rz):
+        x, y, z = self.x, self.y, self.z
+        self.translate(-x, -y, -z)
+        self.rotate_x(-self.rx)
+        self.rotate_y(-self.ry)
+        self.rotate_z(-self.rz)
+        self.rotate_z(rz)
+        self.rotate_y(ry)
+        self.rotate_x(rx)
+        self.rx, self.ry, self.rz = rx, ry, rz
+        self.translate(x, y, z)
+
     def translate(self, x, y, z):
+        self.x += x
+        self.y += y
+        self.z += z
         for i in self.objects:
             i.translate(x, y, z)
+
+    def set_pos(self, x, y, z):
+        for i in self.objects:
+            i.abs_translate(-self.x, -self.y, -self.z)
+            i.abs_translate(x, y, z)
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def apply_mat(self, mat):
+        for i in self.objects:
+            i.apply_mat(mat)
 
     def draw(self, proj, view):
         for i in self.objects:
@@ -139,6 +191,8 @@ class ObjectGroup:
 
     def copy(self):
         return copy.deepcopy(self)
+
+
 
 
 material_gray = Material("./res/shaders/cube.shader")
@@ -154,8 +208,8 @@ material_blue.add_uniform(material_blue.shader.set_uniform_3f, 'uColor', (0, 0, 
 
 rod = 0.2
 gray_cube = Cube(material_gray, 0.5, 0.5, 0.5)
-red_cube = Cube(material_red, rod, rod, 1)
-green_cube = Cube(material_green, 1, rod, rod)
+red_cube = Cube(material_red, 1, rod, rod)
+green_cube = Cube(material_green, rod, rod, 1)
 blue_cube = Cube(material_blue, rod, 1, rod)
 
 
@@ -163,8 +217,8 @@ cube1 = Object3D(gray_cube)
 cube2 = Object3D(red_cube)
 cube3 = Object3D(green_cube)
 cube4 = Object3D(blue_cube)
-cube2.translate(0.5, 0, 0)
-cube3.translate(0, 0.5, 0)
+cube2.translate(0, 0.5, 0)
+cube3.translate(0.5, 0, 0.)
 cube4.translate(0, 0, 0.5)
 
 coord_3d = ObjectGroup()

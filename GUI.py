@@ -10,9 +10,10 @@ from PyQt5 import QtCore, QtWidgets
 from OpenGL.GL import *
 import glm
 
+
 from CoordSys import Robot
 from Renderer import Renderer
-
+from Matrices import mat4, ViewMat
 
 
 Robot = Robot()
@@ -172,16 +173,28 @@ class Ui_MainWindow(object):
         self.theta_var.setChecked(Robot.return_joint(i).theta_var)
 
     def change_alpha(self):
-        Robot.return_joint(self.joint_menu.currentIndex()).alpha = float(self.alpha_input.text())
+        joint = Robot.return_joint(self.joint_menu.currentIndex())
+        text = self.alpha_input.text()
+        joint.alpha = float(text if text != "" else 0)
+        Robot.update_joint(joint)
 
     def change_a(self):
-        Robot.return_joint(self.joint_menu.currentIndex()).a = float(self.a_input.text())
+        joint = Robot.return_joint(self.joint_menu.currentIndex())
+        text = self.a_input.text()
+        joint.a = float(text if text != "" else 0)
+        Robot.update_joint(joint)
 
     def change_d(self):
-        Robot.return_joint(self.joint_menu.currentIndex()).d = float(self.d_input.text())
+        joint = Robot.return_joint(self.joint_menu.currentIndex())
+        text = self.d_input.text()
+        joint.d = float(text if text != "" else 0)
+        Robot.update_joint(joint)
 
     def change_theta(self):
-        Robot.return_joint(self.joint_menu.currentIndex()).theta = float(self.theta_input.text())
+        joint = Robot.return_joint(self.joint_menu.currentIndex())
+        text = self.theta_input.text()
+        joint.theta = float(text if text != "" else 0)
+        Robot.update_joint(joint)
 
     def change_d_var(self):
         Robot.return_joint(self.joint_menu.currentIndex()).d_var = self.d_var.isChecked()
@@ -196,19 +209,14 @@ class GLWidget(QtWidgets.QOpenGLWidget):
         self.setFormat(glFormat)
 
     def initializeGL(self) -> None:
+        Robot.initialise()
         glEnable(GL_DEPTH_TEST)
-        self.proj = glm.perspectiveRH_NO(75, 821/461, 0.1, 100)
-        self.view = glm.identity(glm.mat4)
-        self.view = glm.translate(self.view, glm.vec3(0, 0, -5))
-        # self.view = glm.rotate(self.view, glm.radians(30), glm.vec3(0, 1, 0))
-        from Objects3D import coord_3d
-        self.coord_3d = coord_3d.copy()
-        # self.coord_3d.set_rotate(-90, (1, 0, 0))
-        # self.coord_3d.set_rotate(90, (0, 1, 0))
+        self.proj = mat4(glm.perspectiveRH_NO(75, 821/461, 0.1, 100))
+        self.view = ViewMat()
+        self.view.translate(50, 0, 1)
+        # from Objects3D import coord_3d
+        # self.coord_3d = coord_3d.copy()
 
     def paintGL(self):
         Renderer.clear()
-        # self.view = glm.rotate(self.view, glm.radians(5), glm.vec3(0, 1, 0))
-        # self.view = glm.translate(self.view, glm.vec3(0, 0, -0.1))
-        self.coord_3d.set_translate(0, 0, 0.1)
-        self.coord_3d.draw(self.proj, self.view)
+        Robot.draw(self.proj.mat, self.view.mat)
