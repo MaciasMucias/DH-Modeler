@@ -197,12 +197,18 @@ class GLWidget(QtWidgets.QOpenGLWidget):
 
     def initializeGL(self) -> None:
         glEnable(GL_DEPTH_TEST)
-        self.proj = glm.orthoRH(-821/200, 821/200, -461/200, 461/200, -2, 2)
+        self.proj = glm.perspectiveRH_NO(75, 821/461, 0.1, 100)
         self.view = glm.identity(glm.mat4)
+        self.view = glm.translate(self.view, glm.vec3(0, 0, -5))
+        # self.view = glm.rotate(self.view, glm.radians(30), glm.vec3(0, 1, 0))
         from Objects3D import coord_3d
         self.coord_3d = coord_3d.copy()
+        # self.coord_3d.set_rotate(-90, (1, 0, 0))
+        # self.coord_3d.set_rotate(90, (0, 1, 0))
 
     def paintGL(self):
         Renderer.clear()
-        self.view = glm.rotate(self.view, glm.radians(5), glm.vec3(0, 1, 0))
+        # self.view = glm.rotate(self.view, glm.radians(5), glm.vec3(0, 1, 0))
+        # self.view = glm.translate(self.view, glm.vec3(0, 0, -0.1))
+        self.coord_3d.set_translate(0, 0, 0.1)
         self.coord_3d.draw(self.proj, self.view)
