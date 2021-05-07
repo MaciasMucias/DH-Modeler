@@ -19,7 +19,7 @@ void main()
   Normal = mat3(transpose(inverse(uModel))) * normal;
   vView = uView;
 
-  gl_Position = vec4(FragPos, 1.0) * uView * uProjection;
+  gl_Position = uProjection * uView * vec4(FragPos, 1.0);
 }
 
 #shader fragment

@@ -148,6 +148,7 @@ class Ui_MainWindow(object):
     def append_joint(self):
         if Robot.append_joint():
             self.joint_menu.addItem(str(Robot.len-1))
+            self.joint_menu.setCurrentIndex(Robot.len-2)
 
     def insert_joint(self):
         if Robot.insert_joint(self.joint_menu.currentIndex()):
@@ -173,28 +174,32 @@ class Ui_MainWindow(object):
         self.theta_var.setChecked(Robot.return_joint(i).theta_var)
 
     def change_alpha(self):
-        joint = Robot.return_joint(self.joint_menu.currentIndex())
+        joint_num = self.joint_menu.currentIndex()
+        joint = Robot.return_joint(joint_num)
         text = self.alpha_input.text()
-        joint.alpha = float(text if text != "" else 0)
-        Robot.update_joint(joint)
+        joint.alpha = -float(text if text != "" else 0)
+        Robot.update_joint(joint_num)
 
     def change_a(self):
-        joint = Robot.return_joint(self.joint_menu.currentIndex())
+        joint_num = self.joint_menu.currentIndex()
+        joint = Robot.return_joint(joint_num)
         text = self.a_input.text()
         joint.a = float(text if text != "" else 0)
-        Robot.update_joint(joint)
+        Robot.update_joint(joint_num)
 
     def change_d(self):
-        joint = Robot.return_joint(self.joint_menu.currentIndex())
+        joint_num = self.joint_menu.currentIndex()
+        joint = Robot.return_joint(joint_num)
         text = self.d_input.text()
         joint.d = float(text if text != "" else 0)
-        Robot.update_joint(joint)
+        Robot.update_joint(joint_num)
 
     def change_theta(self):
-        joint = Robot.return_joint(self.joint_menu.currentIndex())
+        joint_num = self.joint_menu.currentIndex()
+        joint = Robot.return_joint(joint_num)
         text = self.theta_input.text()
-        joint.theta = float(text if text != "" else 0)
-        Robot.update_joint(joint)
+        joint.theta = -float(text if text != "" else 0)
+        Robot.update_joint(joint_num)
 
     def change_d_var(self):
         Robot.return_joint(self.joint_menu.currentIndex()).d_var = self.d_var.isChecked()
@@ -211,9 +216,12 @@ class GLWidget(QtWidgets.QOpenGLWidget):
     def initializeGL(self) -> None:
         Robot.initialise()
         glEnable(GL_DEPTH_TEST)
-        self.proj = mat4(glm.perspectiveRH_NO(75, 821/461, 0.1, 100))
+        self.proj = mat4(glm.perspective(75, 821/461, 0.1, 100))
         self.view = ViewMat()
-        self.view.translate(50, 0, 1)
+
+        self.view.translate(0, 0, 50)
+        self.view.rotate(90, (0, 0, 1))
+        self.view.rotate(-90, (0, 1, 0))
         # from Objects3D import coord_3d
         # self.coord_3d = coord_3d.copy()
 

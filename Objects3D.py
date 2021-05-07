@@ -21,7 +21,7 @@ class Object3D:
 
     def rotate(self, angle, axis):
         x, y, z = axis
-        self.model = glm.rotate(self.model, glm.radians(angle), glm.vec3(y, z, x))
+        self.model = glm.rotate(self.model, glm.radians(angle), glm.vec3(x, y ,z))
 
     def rotate_around_origin(self, angle, axis):
         x, y, z = self.x, self.y, self.z
@@ -33,16 +33,16 @@ class Object3D:
         self.x += x
         self.y += y
         self.z += z
-        self.model = glm.translate(self.model, glm.vec3(-y/self.y_stretch, -z/self.z_stretch, x/self.x_stretch))
+        self.model = glm.translate(self.model, glm.vec3(x/self.x_stretch, y/self.y_stretch, z/self.z_stretch))
 
     def abs_translate(self, x, y, z):
-        self.model += glm.translate(glm.identity(glm.mat4), glm.vec3(-y, -z, x))
+        self.model += glm.translate(glm.identity(glm.mat4), glm.vec3(x, y, z))
 
     def set_stretch(self, x, y, z):
         self.x_stretch *= x
         self.y_stretch *= y
         self.z_stretch *= z
-        self.model = glm.scale(self.model, glm.vec3(y, z, x))
+        self.model = glm.scale(self.model, glm.vec3(x, y, z))
 
     def draw(self, proj, view):
         self.shape3d.draw(proj, view, self.external_mat * self.model)
@@ -59,11 +59,16 @@ class Shape3D:
         self.ibo = IndexBuffer(indices) if indices is not None else None
         self.vao.add_buffer(self.vbo, layout)
 
-    def draw(self, uProjection, uView, uModel):
+    def draw(self, uProjection, uView, lhModel):
         self.material.bind()
-        self.material.shader.set_uniform_mat4f("uProjection", uProjection)
-        self.material.shader.set_uniform_mat4f("uView", uView)
-        self.material.shader.set_uniform_mat4f("uModel", glm.transpose(uModel))
+        uModel = glm.identity(glm.mat4)
+        lhModel = glm.transpose(lhModel)
+        switch = {0: 1, 1: 0, 2: 2, 3: 3}
+        for i in range(4):
+            uModel[i] = lhModel[switch[i]]
+        self.material.shader.set_uniform_mat4f("uProjection", glm.transpose(uProjection))
+        self.material.shader.set_uniform_mat4f("uView", glm.transpose(uView))
+        self.material.shader.set_uniform_mat4f("uModel", uModel)
         Renderer.draw(self.vao, self.ibo if self.ibo is not None else self.vbo, self.material.shader)
 
 
@@ -209,16 +214,16 @@ material_blue.add_uniform(material_blue.shader.set_uniform_3f, 'uColor', (0, 0, 
 rod = 0.2
 gray_cube = Cube(material_gray, 0.5, 0.5, 0.5)
 red_cube = Cube(material_red, 1, rod, rod)
-green_cube = Cube(material_green, rod, rod, 1)
-blue_cube = Cube(material_blue, rod, 1, rod)
+green_cube = Cube(material_green, rod, 1, rod)
+blue_cube = Cube(material_blue, rod, rod, 1)
 
 
 cube1 = Object3D(gray_cube)
 cube2 = Object3D(red_cube)
 cube3 = Object3D(green_cube)
 cube4 = Object3D(blue_cube)
-cube2.translate(0, 0.5, 0)
-cube3.translate(0.5, 0, 0.)
+cube2.translate(0.5, 0, 0)
+cube3.translate(0, 0.5, 0)
 cube4.translate(0, 0, 0.5)
 
 coord_3d = ObjectGroup()

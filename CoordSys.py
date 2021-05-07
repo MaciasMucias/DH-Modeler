@@ -40,8 +40,9 @@ class Robot:
     def len(self):
         return len(self.joints) - 1
 
-    def update_joint(self, joint):
-        joint.update(self.joints[self.joints.index(joint) - 1])
+    def update_joint(self, joint_num):
+        for i in range(joint_num+2, len(self.joints)):
+            self.joints[i].update(self.joints[i-1])
 
     def draw(self, proj, view):
         for joint in reversed(self.joints[1:]):
@@ -60,16 +61,17 @@ class Joint:
         self.alpha, self.a, self.d, self.theta = 0.0, 0.0, 0.0, 0.0
         self.d_var, self.theta_var = False, False
 
-        self.mat = None
+        self.mat = np.eye(4)
 
         self.update(parent)
 
     def update(self, parent):
         if parent is None:
-            self.mat = self.generate_matrix
+            self.mat = np.eye(4)
         else:
-            self.mat = parent.generate_matrix @ self.generate_matrix
+            self.mat = parent.mat @ self.generate_matrix
 
+        self.coord_3d.apply_mat(mat4(self.mat.T.tolist()))
 
     @property
     def generate_matrix(self) -> np.ndarray:
@@ -81,7 +83,6 @@ class Joint:
                          [s_t, c_t * c_a, -c_t * s_a, self.a * s_t],
                          [0, s_a, c_a, self.d],
                          [0, 0, 0, 1]])  # Macierz transformacji jednorodnej
-
 
     @staticmethod  # Sin i cos zwracający wartości całkowite dla popularnych kątów
     def sin(x):
