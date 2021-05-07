@@ -16,4 +16,3 @@ class mat4:
 class ViewMat(mat4):
     def translate(self, x, y, z):
         super(ViewMat, self).translate(-x, -y, -z)
-
