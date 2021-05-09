@@ -223,7 +223,7 @@ class Ui_MainWindow(object):
         joint_num = self.joint_menu.currentIndex()
         joint = Robot.return_joint(joint_num)
         text = self.alpha_input.text()
-        joint.alpha = -float(text if text != "" else 0)
+        joint.alpha = float(text if text != "" else 0)
         Robot.update_joint(joint_num)
         self.openGLWidget.update()
 
@@ -247,7 +247,7 @@ class Ui_MainWindow(object):
         joint_num = self.joint_menu.currentIndex()
         joint = Robot.return_joint(joint_num)
         text = self.theta_input.text()
-        joint.theta = -float(text if text != "" else 0)
+        joint.theta = float(text if text != "" else 0)
         Robot.update_joint(joint_num)
         self.openGLWidget.update()
 
