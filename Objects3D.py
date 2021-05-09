@@ -59,16 +59,11 @@ class Shape3D:
         self.ibo = IndexBuffer(indices) if indices is not None else None
         self.vao.add_buffer(self.vbo, layout)
 
-    def draw(self, uProjection, uView, lhModel):
+    def draw(self, uProjection, uView, uModel):
         self.material.bind()
-        uModel = glm.identity(glm.mat4)
-        lhModel = glm.transpose(lhModel)
-        switch = {0: 1, 1: 0, 2: 2, 3: 3}
-        for i in range(4):
-            uModel[i] = lhModel[switch[i]]
         self.material.shader.set_uniform_mat4f("uProjection", glm.transpose(uProjection))
         self.material.shader.set_uniform_mat4f("uView", glm.transpose(uView))
-        self.material.shader.set_uniform_mat4f("uModel", uModel)
+        self.material.shader.set_uniform_mat4f("uModel", glm.transpose(uModel))
         Renderer.draw(self.vao, self.ibo if self.ibo is not None else self.vbo, self.material.shader)
 
 
