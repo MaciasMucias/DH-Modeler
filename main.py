@@ -6,8 +6,6 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     glFormat = QtGui.QSurfaceFormat()
-    glFormat.setVersion(3, 3)
-    glFormat.setProfile(QtGui.QSurfaceFormat.CoreProfile)
     ui = Ui_MainWindow()
     ui.setupUi(glFormat, MainWindow)
     MainWindow.show()
